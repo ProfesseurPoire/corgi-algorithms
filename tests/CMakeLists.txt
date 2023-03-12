@@ -8,7 +8,8 @@ add_executable(${PROJECT_NAME} "")
 # it's one way to avoid adding variables, and to define our target early
 target_sources(${PROJECT_NAME} PRIVATE src/main.cpp)
 
-target_link_libraries(${PROJECT_NAME} corgi-algorithms)
+find_package(corgi-test CONFIG)
+target_link_libraries(${PROJECT_NAME} corgi-algorithms corgi-test)
 
 set_property(TARGET ${PROJECT_NAME}  PROPERTY CXX_STANDARD 20)
 
