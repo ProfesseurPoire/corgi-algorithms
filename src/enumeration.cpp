@@ -321,7 +321,7 @@ std::vector<int> arrangements_opt(std::vector<int> set, int size)
         for(auto it = i; i >= 0; it--)
         {
 
-            if(((set_size - rdata[subset_size_offset]) + 1) ==
+            if(((static_cast<int>(set_size) - rdata[subset_size_offset]) + 1) ==
                static_cast<int>(size))
             {
                 memcpy(&result_data[current_result * size], pdata,
