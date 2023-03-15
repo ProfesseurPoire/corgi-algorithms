@@ -1,5 +1,8 @@
+#include <corgi/algorithms/array.h>
 #include <corgi/algorithms/enumeration.h>
 #include <corgi/test/test.h>
+
+#include <array>
 
 using namespace corgi;
 
@@ -30,11 +33,11 @@ void third_func()
 
 int main()
 {
-    test::add_benchmark("arrangements", 100, &first_func, "recursive",
-                        &second_func, "iterative");
+    // test::add_benchmark("arrangements", 100, &first_func, "recursive",
+    //                     &second_func, "iterative");
 
-    test::add_benchmark("arrangements", 100, &second_func, "iterative",
-                        &third_func, "optimized");
+    // test::add_benchmark("arrangements", 100, &second_func, "iterative",
+    //                     &third_func, "optimized");
 
     test::add_test(
         "arrangements", "recursive",
@@ -293,6 +296,30 @@ int main()
 
             assert_that(result[9][0], test::equals(4));
             assert_that(result[9][1], test::equals(4));
+        });
+
+    test::add_test(
+        "array", "distincts",
+        []() -> void
+        {
+            std::vector<int> first {1, 2, 3, 4};
+            std::vector<int> second {1, 2, 3, 5};
+            std::vector<int> third {1, 2, 3};
+
+            assert_that(algorithms::array::distincts(first, first),
+                        test::equals(false));
+
+            assert_that(algorithms::array::distincts(first, second),
+                        test::equals(true));
+
+            assert_that(algorithms::array::distincts(first, third),
+                        test::equals(true));
+
+            assert_that(algorithms::array::distincts({first, first, first}),
+                        test::equals(false));
+
+            assert_that(algorithms::array::distincts({first, third, second}),
+                        test::equals(true));
         });
 
     test::run_all();

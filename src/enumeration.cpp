@@ -1,5 +1,7 @@
 #include "corgi/algorithms/enumeration.h"
 
+#include <assert.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -142,6 +144,8 @@ combination_with_repetition_rec(std::vector<std::vector<int>>& results,
 std::vector<std::vector<int>>
 combination_without_repetition(std::vector<int> set, int k)
 {
+    assert(static_cast<int>(set.size()) >= k);
+
     std::vector<std::vector<int>> results;
     results.reserve(
         combination_count_without_repetition(k, static_cast<int>(set.size())));
@@ -167,6 +171,8 @@ std::vector<std::vector<int>> combination_with_repetition(std::vector<int> set,
 
 std::vector<std::vector<int>> arrangements(std::vector<int> set, int size)
 {
+    assert(static_cast<int>(set.size()) >= size);
+
     std::vector<std::vector<int>> results;
     results.reserve(arrangement_count_without_repetition(
         size, static_cast<int>(set.size())));
