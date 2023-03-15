@@ -1,5 +1,7 @@
 #include "corgi/algorithms/enumeration.h"
 
+#include <algorithm>
+#include <cmath>
 namespace corgi::algorithms::enumeration
 {
 
@@ -43,10 +45,130 @@ void find_arrangements_rec(std::vector<std::vector<int>>& results,
     }
 }
 
-std::vector<std::vector<int>> find_arrangements(std::vector<int> set, int size)
+void find_arrangements_with_repetition(std::vector<std::vector<int>>& results,
+                                       std::vector<int>& arrangement,
+                                       std::vector<int>& set,
+                                       int               size,
+                                       int               position)
+{
+    if(position == size)
+    {
+        results.push_back(arrangement);
+    }
+    else
+    {
+        int              i = 0;
+        std::vector<int> new_arrangement;
+        new_arrangement.reserve(size);
+
+        for(auto item : set)
+        {
+            new_arrangement = arrangement;
+            new_arrangement.push_back(item);
+            find_arrangements_rec(results, new_arrangement, set, size,
+                                  position + 1);
+            i++;
+        }
+    }
+}
+
+static void
+combination_without_repetition_rec(std::vector<std::vector<int>>& results,
+                                   std::vector<int>&              arrangement,
+                                   std::vector<int>&              set,
+                                   int                            size,
+                                   int                            position)
+{
+    if(position == size)
+    {
+        results.push_back(arrangement);
+    }
+    else
+    {
+        int              i = 0;
+        std::vector<int> new_arrangement;
+        new_arrangement.reserve(size);
+        std::vector<int> new_set;
+        new_set = set;
+
+        for(auto item : set)
+        {
+            new_arrangement = arrangement;
+            new_arrangement.push_back(item);
+
+            new_set.erase(new_set.begin());
+
+            find_arrangements_rec(results, new_arrangement, new_set, size,
+                                  position + 1);
+            i++;
+        }
+    }
+}
+
+static void
+combination_with_repetition_rec(std::vector<std::vector<int>>& results,
+                                std::vector<int>&              arrangement,
+                                std::vector<int>&              set,
+                                int                            size,
+                                int                            position)
+{
+    if(position == size)
+    {
+        results.push_back(arrangement);
+    }
+    else
+    {
+        int              i = 0;
+        std::vector<int> new_arrangement;
+        new_arrangement.reserve(size);
+        std::vector<int> new_set;
+        new_set = set;
+
+        for(auto item : set)
+        {
+            new_arrangement = arrangement;
+            new_arrangement.push_back(item);
+
+            find_arrangements_rec(results, new_arrangement, new_set, size,
+                                  position + 1);
+
+            new_set.erase(new_set.begin());
+            i++;
+        }
+    }
+}
+
+std::vector<std::vector<int>>
+combination_without_repetition(std::vector<int> set, int k)
 {
     std::vector<std::vector<int>> results;
-    results.reserve(arrangements_size(static_cast<int>(set.size()), size));
+    results.reserve(
+        combination_count_without_repetition(k, static_cast<int>(set.size())));
+
+    std::vector<int> ar;
+    combination_without_repetition_rec(results, ar, set, k, 0);
+
+    return results;
+}
+
+std::vector<std::vector<int>> combination_with_repetition(std::vector<int> set,
+                                                          int              k)
+{
+    std::vector<std::vector<int>> results;
+    results.reserve(
+        combination_count_with_repetition(k, static_cast<int>(set.size())));
+
+    std::vector<int> ar;
+    combination_with_repetition_rec(results, ar, set, k, 0);
+
+    return results;
+}
+
+std::vector<std::vector<int>> arrangements(std::vector<int> set, int size)
+{
+    std::vector<std::vector<int>> results;
+    results.reserve(arrangement_count_without_repetition(
+        size, static_cast<int>(set.size())));
 
     std::vector<int> ar;
     find_arrangements_rec(results, ar, set, size, 0);
@@ -54,11 +176,25 @@ std::vector<std::vector<int>> find_arrangements(std::vector<int> set, int size)
     return results;
 }
 
-std::vector<std::vector<int>> find_arrangements_iterative(std::vector<int> set,
-                                                          int              size)
+std::vector<std::vector<int>> arrangements_with_repetition(std::vector<int> set,
+                                                           int              n)
 {
     std::vector<std::vector<int>> results;
-    results.reserve(arrangements_size(static_cast<int>(set.size()), size));
+    results.reserve(
+        arrangement_count_with_repetition(n, static_cast<int>(set.size())));
+
+    std::vector<int> ar;
+    find_arrangements_with_repetition(results, ar, set, n, 0);
+
+    return results;
+}
+
+std::vector<std::vector<int>> arrangements_iterative(std::vector<int> set,
+                                                     int              size)
+{
+    std::vector<std::vector<int>> results;
+    results.reserve(arrangement_count_without_repetition(
+        size, static_cast<int>(set.size())));
 
     size_t sum     = 0;
     size_t setsize = set.size();
@@ -130,11 +266,12 @@ struct optimized_arrangement
     size_t           subset_size;
 };
 
-std::vector<int> find_arrangements_opt(std::vector<int> set, int size)
+std::vector<int> arrangements_opt(std::vector<int> set, int size)
 {
     // We start by computing how many combination there is. Might be nice
     // to
-    auto count = arrangements_size(static_cast<int>(set.size()), size);
+    auto count = arrangement_count_without_repetition(
+        size, static_cast<int>(set.size()));
     std::vector<int> results;
     results.resize(count * size);
 
@@ -221,8 +358,48 @@ std::vector<int> find_arrangements_opt(std::vector<int> set, int size)
     return results;
 }
 
-int arrangements_size(int set_item, int size)
+int arrangement_count_without_repetition(int k, int n)
 {
-    return factorial(set_item) / factorial(set_item - size);
+    return factorial(n) / factorial(n - k);
 }
+
+int arrangement_count_with_repetition(int k, int n)
+{
+    return static_cast<int>(std::pow(n, k));
+}
+
+int combination_count_without_repetition(int k, int n)
+{
+    return factorial(n) / (factorial(k) * (factorial(n - k)));
+}
+
+int combination_count_with_repetition(int k, int n)
+{
+    return factorial(n + k - 1) / (factorial(k) * factorial(n + k - 1 - k));
+}
+
+int permutation_count_with_repetition(int k)
+{
+    return arrangement_count_with_repetition(k, k);
+}
+
+int permutation_count_without_repetition(int k)
+{
+    return arrangement_count_without_repetition(k, k);
+}
+
+std::vector<std::vector<int>>
+permutations_without_repetition(std::vector<int> set)
+{
+    std::sort(set.begin(), set.end());
+
+    return arrangements(set, static_cast<int>(set.size()));
+}
+
+std::vector<std::vector<int>> permutations_with_repetition(std::vector<int> set)
+{
+    std::sort(set.begin(), set.end());
+    return arrangements_with_repetition(set, static_cast<int>(set.size()));
+}
+
 }    // namespace corgi::algorithms::enumeration
