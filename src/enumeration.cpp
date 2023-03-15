@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 namespace corgi::algorithms::enumeration
 {
 
@@ -237,7 +238,7 @@ std::vector<std::vector<int>> arrangements_iterative(std::vector<int> set,
 
         arrangement_pointer--;
 
-        if(arrangement.size() == static_cast<int>(size))
+        if(static_cast<int>(arrangement.size()) == static_cast<int>(size))
         {
             results.push_back(arrangement);
             continue;
