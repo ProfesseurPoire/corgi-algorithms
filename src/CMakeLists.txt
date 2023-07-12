@@ -1,1 +1,1 @@
-target_sources(${PROJECT_NAME} PRIVATE algorithms.cpp enumeration.cpp)
+target_sources(${PROJECT_NAME} PRIVATE graph.cpp algorithms.cpp enumeration.cpp)
