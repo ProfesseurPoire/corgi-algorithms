@@ -1,5 +1,6 @@
 #include <corgi/algorithms/array.h>
 #include <corgi/algorithms/enumeration.h>
+#include <corgi/algorithms/graph.h>
 #include <corgi/test/test.h>
 
 #include <array>
@@ -321,6 +322,50 @@ int main()
             assert_that(algorithms::array::distincts({first, third, second}),
                         test::equals(true));
         });
+
+    test::add_test("graph", "dijkstra",
+                   []() -> void
+                   {
+                       // The graph :
+                       //
+                       // 0 - 1 - 2
+                       //     |
+                       //     3 - 4 - 7
+                       //         |
+                       //         5 - 6
+                       graph::graph g;
+
+                       g.nodes = 8;
+
+                       g.edges.push_back({0, 1});
+
+                       g.edges.push_back({1, 2});
+                       g.edges.push_back({1, 3});
+
+                       g.edges.push_back({3, 4});
+
+                       g.edges.push_back({4, 5});
+                       g.edges.push_back({5, 6});
+                       g.edges.push_back({4, 7});
+
+                       g.build_adjacency_matrix();
+
+                       // This returns a copy of the graph with dijkstra cost
+                       // calculated for every node
+                       auto result = graph::dijkstra(g, 0, 6);
+
+                       for(auto [key, node] : result)
+                       {
+                           std::cout << key << " " << node.cost << std::endl;
+                       }
+
+                       auto path = graph::dijstra_path(result, 0, 6);
+
+                       for(auto p : path)
+                       {
+                           std::cout << p << std::endl;
+                       }
+                   });
 
     test::run_all();
     return 0;

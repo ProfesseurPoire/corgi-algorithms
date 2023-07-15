@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <vector>
 
 namespace graph
@@ -17,7 +18,7 @@ struct edge
 
 struct graph
 {
-    std::vector<int>              cells;
+    int                           nodes;
     std::vector<edge>             edges;
     std::vector<std::vector<int>> adjacency_matrix;
 
@@ -26,10 +27,10 @@ struct graph
      */
     void build_adjacency_matrix()
     {
-        adjacency_matrix.resize(cells.size());
+        adjacency_matrix.resize(nodes);
 
         for(auto& line : adjacency_matrix)
-            line.resize(cells.size(), 0);
+            line.resize(nodes, 0);
 
         for(auto& [first, second] : edges)
         {
@@ -39,18 +40,11 @@ struct graph
     }
 };
 
-struct dikstra_cell
+struct dijkstra_node
 {
+    int index;
     int cost;
-};
-
-/**
- * @brief Object that is returned by the dijkstra function. It returns the cost
- * of every node compared to the first one given to the function
- */
-struct dijkstra_result
-{
-    std::vector<dikstra_cell> cells;
+    int parent;
 };
 
 /**
@@ -61,5 +55,9 @@ struct dijkstra_result
  * The goal here is just to get a working example. I'd probably wants edges to
  * be weighted or other informations.
  */
-std::vector<dijkstra_result> dikstra(graph gr, int start, int dest);
+std::map<int, dijkstra_node> dijkstra(graph gr, int start, int dest);
+
+std::vector<int>
+dijstra_path(std::map<int, dijkstra_node> gr, int start, int dest);
+
 }    // namespace graph
