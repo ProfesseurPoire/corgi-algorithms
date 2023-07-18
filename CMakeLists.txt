@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.20)
 
+
+
 project(corgi-algorithms DESCRIPTION "ProjectDescription" LANGUAGES CXX VERSION 1.0.0)
+
+
+
+
+include(conan/conanbuildinfo.cmake)
+conan_basic_setup()
 
 set(CMAKE_DEBUG_POSTFIX d)
 
@@ -20,6 +28,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>)
 
 add_subdirectory(src)
+add_subdirectory(samples)
 
 # Targets we want to export and where
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets

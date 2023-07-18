@@ -1,9 +1,12 @@
 #include <corgi/algorithms/array.h>
 #include <corgi/algorithms/enumeration.h>
-#include <corgi/algorithms/graph.h>
+#include <corgi/algorithms/graphs/astar.h>
+#include <corgi/algorithms/graphs/dijkstra.h>
+#include <corgi/algorithms/graphs/graph.h>
 #include <corgi/test/test.h>
 
 #include <array>
+#include <limits>
 
 using namespace corgi;
 
@@ -333,7 +336,7 @@ int main()
                        //     3 - 4 - 7
                        //         |
                        //         5 - 6
-                       graph::graph g;
+                       graphs::graph g;
 
                        g.nodes = 8;
 
@@ -350,21 +353,42 @@ int main()
 
                        g.build_adjacency_matrix();
 
+                       std::map<int, graphs::dijkstra_node> unvisited_nodes;
+
+                       // We simply copy the nodes of the given graph into
+                       // unvisited nodes
+                       for(int i = 0; i < g.nodes; i++)
+                           unvisited_nodes.emplace(
+                               i, graphs::dijkstra_node {
+                                      std::numeric_limits<int>::max(), -1});
+
                        // This returns a copy of the graph with dijkstra cost
                        // calculated for every node
-                       auto result = graph::dijkstra(g, 0, 6);
+                       auto result = graphs::dijkstra(unvisited_nodes,
+                                                      g.adjacency_matrix, 0);
 
-                       for(auto [key, node] : result)
-                       {
-                           std::cout << key << " " << node.cost << std::endl;
-                       }
+                       auto path = graphs::dijstra_path(result, 0, 6);
 
-                       auto path = graph::dijstra_path(result, 0, 6);
+                       // Commented, only here for debug
 
-                       for(auto p : path)
-                       {
-                           std::cout << p << std::endl;
-                       }
+                       //    for(auto [key, node] : result)
+                       //    {
+                       //        std::cout << key << " " << node.cost <<
+                       //        std::endl;
+                       //    }
+
+                       //    for(auto p : path)
+                       //    {
+                       //        std::cout << p << std::endl;
+                       //    }
+
+                       assert_that(path.size(), test::equals(6));
+                       assert_that(path[0], test::equals(0));
+                       assert_that(path[1], test::equals(1));
+                       assert_that(path[2], test::equals(3));
+                       assert_that(path[3], test::equals(4));
+                       assert_that(path[4], test::equals(5));
+                       assert_that(path[5], test::equals(6));
                    });
 
     test::run_all();

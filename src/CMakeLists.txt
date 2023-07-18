@@ -1,1 +1,1 @@
-target_sources(${PROJECT_NAME} PRIVATE graph.cpp algorithms.cpp enumeration.cpp)
+target_sources(${PROJECT_NAME} PRIVATE  graphs/dijkstra.cpp graphs/astar.cpp graphs/graph.cpp algorithms.cpp enumeration.cpp)
