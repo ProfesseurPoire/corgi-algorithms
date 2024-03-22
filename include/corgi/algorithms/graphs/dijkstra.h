@@ -27,6 +27,8 @@ dijkstra(std::map<int, dijkstra_node>  unvisited_nodes,
          std::vector<std::vector<int>> adjancency_matrix,
          int                           start);
 
+void dijkstra_step();
+
 /**
  * @brief
  */

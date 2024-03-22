@@ -1,16 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
-
-
 project(corgi-algorithms DESCRIPTION "ProjectDescription" LANGUAGES CXX VERSION 1.0.0)
 
-
-
-
-include(conan/conanbuildinfo.cmake)
-conan_basic_setup()
-
 set(CMAKE_DEBUG_POSTFIX d)
+
 
 add_library(${PROJECT_NAME} STATIC "")
 
@@ -26,6 +19,7 @@ set_property(TARGET ${PROJECT_NAME}  PROPERTY CXX_STANDARD 20)
 target_include_directories(${PROJECT_NAME} PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
+
 
 add_subdirectory(src)
 add_subdirectory(samples)
@@ -59,7 +53,6 @@ install(FILES
           "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
         DESTINATION lib/cmake/${PROJECT_NAME}
 )
-
 
 
 # Tests

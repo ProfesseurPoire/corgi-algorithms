@@ -1,56 +1,55 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_main.h>
-#include <corgi/opengl/shader.h>
+#include <corgi/algorithms/graphs/dijkstra.h>
+#include <corgi/math/vec2.h>
+#include <corgi/opengl/renderer.h>
 #include <glad/glad.h>
 
 #include <bit>
 #include <bitset>
 #include <iostream>
-#include <numbers>
-#include <vector>
 
-struct mesh
-{
-    std::vector<float>    vertices;
-    std::vector<unsigned> indexes;
-};
+using namespace corgi;
 
-mesh build_circle(float center_x,
-                  float center_y,
-                  float radius,
-                  int   discretisation)
-{
-    mesh m;
-
-    m.vertices.reserve(discretisation * 6);
-    m.indexes.reserve(discretisation * 3);
-
-    float delta = 2.0F * std::numbers::pi_v<float> / discretisation;
-
-    for(int i = 0; i < discretisation; i++)
-    {
-        float angle  = delta * i;
-        float angle2 = delta * (i + 1);
-
-        m.vertices.push_back(center_x);
-        m.vertices.push_back(center_y);
-
-        m.vertices.push_back(center_x + cos(angle) * radius);
-        m.vertices.push_back(center_y + sin(angle) * radius);
-
-        m.vertices.push_back(center_x + cos(angle2) * radius);
-        m.vertices.push_back(center_y + sin(angle2) * radius);
-
-        m.indexes.push_back(i * 3);
-        m.indexes.push_back(i * 3 + 1);
-        m.indexes.push_back(i * 3 + 2);
-    }
-    return m;
-}
+constexpr unsigned short screen_width  = 500;
+constexpr unsigned short screen_height = 500;
 
 int main(int argc, char** argv)
 {
+
+    graphs::graph g;
+
+    g.nodes = 8;
+
+    g.edges.push_back({0, 1});
+
+    g.edges.push_back({1, 2});
+    g.edges.push_back({1, 3});
+
+    g.edges.push_back({3, 4});
+
+    g.edges.push_back({4, 5});
+    g.edges.push_back({5, 6});
+    g.edges.push_back({4, 7});
+
+    g.build_adjacency_matrix();
+
+    float distance = 60;
+
+    std::vector<corgi::vec2> points;
+    points.emplace_back(-distance, 0);
+    points.emplace_back(0, 0);
+    points.emplace_back(distance, 0);
+    points.emplace_back(0, -distance);
+    points.emplace_back(distance, -distance);
+    points.emplace_back(distance, -distance * 2);
+    points.emplace_back(distance * 2, -distance * 2);
+    points.emplace_back(distance * 2, -distance);
+
     SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
@@ -63,89 +62,33 @@ int main(int argc, char** argv)
     flags[std::bit_width(unsigned(SDL_WINDOW_RESIZABLE)) - 1]  = 1;
     flags[std::bit_width(unsigned(SDL_WINDOW_BORDERLESS)) - 1] = 0;
 
-    auto window =
-        SDL_CreateWindow("dijkstra", SDL_WINDOWPOS_CENTERED,
-                         SDL_WINDOWPOS_CENTERED, 500, 500, flags.to_ullong());
+    auto window = SDL_CreateWindow("dijkstra", SDL_WINDOWPOS_CENTERED,
+                                   SDL_WINDOWPOS_CENTERED, screen_width,
+                                   screen_height, flags.to_ullong());
 
     if(!window)
-    {
         std::cout << "Could not create window" << std::endl;
-    }
 
-    SDL_Surface* window_surface = SDL_GetWindowSurface(window);
+    const auto context = SDL_GL_CreateContext(window);
 
-    SDL_Event   e;
-    SDL_Keycode kc;
-
-    bool quit = false;
-
-    auto context = SDL_GL_CreateContext(window);
-
-    gladLoadGLLoader(static_cast<GLADloadproc>(SDL_GL_GetProcAddress));
+    gladLoadGLLoader(SDL_GL_GetProcAddress);
 
     SDL_GL_MakeCurrent(window, context);
     SDL_GL_SetSwapInterval(0);
 
-    auto circle = build_circle(0, 0, 0.2f, 100);
+    renderer renderer(screen_width, screen_height);
 
-    glClearColor(0.8F, 0.8F, 0.8F, 1.0F);
+    glEnable(GL_MULTISAMPLE);
 
-    GLuint vertex_buffer;
-    glGenBuffers(1, &vertex_buffer);
+    bool quit = false;
 
-    GLuint index_buffer;
-    glGenBuffers(1, &index_buffer);
-
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-
-    glBindVertexArray(vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * circle.vertices.size(),
-                 circle.vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(unsigned) * circle.indexes.size(),
-                 circle.indexes.data(), GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0,
-                          (void*)(0 * sizeof(GL_FLOAT)));
-
-    glBindVertexArray(0);
-    glDisableVertexAttribArray(0);
-
-    auto vs_str =
-        R"(
-            #version 330 core
-            layout(location = 0) in vec2 position;
-            void main() { gl_Position =  vec4(position, 0.0, 1.0); 
-        })";
-
-    auto fs_str =
-        R"(
-            #version 330 core
-            out vec4 color;
-            void main()
-            {
-                color	= vec4(1.0, 0.0, 1.0, 1.0);
-            }
-        )";
-
-    corgi::shader vs(vs_str, corgi::shader_type::vertex);
-    corgi::shader fs(fs_str, corgi::shader_type::fragment);
-
-    auto program = glCreateProgram();
-
-    glAttachShader(program, vs.id());
-    glAttachShader(program, fs.id());
-    glLinkProgram(program);
+    renderer.set_clear_color({0.3f, 0.3F, 0.3F, 1.0F});
 
     while(!quit)
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        renderer.clear();
+
+        SDL_Event e;
 
         while(SDL_PollEvent(&e))
         {
@@ -157,15 +100,29 @@ int main(int argc, char** argv)
             }
         }
 
-        glUseProgram(program);
+        int i = 0;
+        int j = 0;
+        for(auto adj : g.adjacency_matrix)
+        {
+            j = 0;
+            for(auto n : adj)
+            {
+                if(n != 0)
+                {
+                    renderer.set_default_color(1.0F, 1.0F, 1.0F);
+                    renderer.draw_default_line_on_screen(
+                        points[i].x, points[i].y, points[j].x, points[j].y);
+                }
+                j++;
+            }
+            i++;
+        }
 
-        glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES,
-                       static_cast<GLsizei>(circle.indexes.size()),
-                       GL_UNSIGNED_INT, (void*)0);
-
-        glBindVertexArray(0);
-        glUseProgram(0);
+        for(auto point : points)
+        {
+            renderer.set_default_color(1.0F, 1.0F, 0.0F);
+            renderer.draw_default_circle_on_screen(point.x, point.y, 10);
+        }
 
         SDL_GL_SwapWindow(window);
     }

@@ -26,6 +26,42 @@ dijstra_path(std::map<int, dijkstra_node> nodes, int start, int dest)
     return path;
 }
 
+void dijkstra_step(std::vector<std::vector<int>> adjacency_matrix)
+{    // I get the node of minimal cost
+    auto [minimal_node_key, minimal_node] =
+        *std::min_element(unvisited_nodes.begin(), unvisited_nodes.end(),
+                          [](const auto& a, const auto& b)
+                          { return a.second.cost < b.second.cost; });
+
+    // We add that node to the list of visited nodes
+    visited_nodes.emplace(minimal_node_key, minimal_node);
+    unvisited_nodes.erase(minimal_node_key);
+
+    // We use an adjacency matrix to figure out the neighbors of the node we
+    // picked
+    for(std::size_t i = 0; i < adjacency_matrix[minimal_node_key].size(); i++)
+    {
+        auto cost = adjacency_matrix[minimal_node_key][i];
+
+        // If j equals zero it means there's no neighbor
+        if(cost == 0)
+            continue;
+
+        // If we already visited the node we skip it
+        if(visited_nodes.contains((int)i))
+            continue;
+
+        // Now we check if the cost is less that previously computed.
+        // If so, we replace the value and update the parent.
+        // The parent is only there to make it easy to find the path
+        if((minimal_node.cost + cost < unvisited_nodes.at((int)i).cost))
+        {
+            unvisited_nodes.at((int)i).cost   = minimal_node.cost + cost;
+            unvisited_nodes.at((int)i).parent = minimal_node_key;
+        }
+    }
+}
+
 std::map<int, dijkstra_node>
 dijkstra(std::map<int, dijkstra_node>  unvisited_nodes,
          std::vector<std::vector<int>> adjacency_matrix,
